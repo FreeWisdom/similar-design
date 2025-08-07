@@ -254,7 +254,7 @@ export default function NameGeneratorForm({ onGenerate, isGenerating, hasTriedFr
             {/* Submit Button */}
             <Button 
               type="submit" 
-              disabled={isGenerating || (user && !hasEnoughCredits)}
+              disabled={isGenerating || !!(user && !hasEnoughCredits)}
               className="w-full h-14 text-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-200"
             >
               {isGenerating ? (

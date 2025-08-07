@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/server';
 // Get specific batch with pagination by generation rounds
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: any
 ) {
   try {
     const supabase = await createClient();
