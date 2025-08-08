@@ -350,7 +350,7 @@ export default function RandomNameGenerator() {
         <Card className="p-8">
           {/* Title and Description */}
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            <h2 className="text-3xl font-bold mb-2 text-foreground">
               ✨ Generation Settings
             </h2>
             <p className="text-gray-600 text-lg">
@@ -507,7 +507,6 @@ export default function RandomNameGenerator() {
 
           <Suspense fallback={<LoadingNamesGrid count={parseInt(form.watch('count') || '12')} />}>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Show generated names */}
               {generatedNames.map((name, index) => (
                 <motion.div
                   key={`${name.chinese}-${index}`}
