@@ -19,7 +19,7 @@ const openai = new OpenAI({
 });
 
 // 期望模型（需支持视觉理解）。如需替换，请统一在此处更改。
-const VISION_MODEL = "openai/gpt-5-chat";
+const VISION_MODEL = "anthropic/claude-sonnet-4";
 
 // 将 File 转为 data URL（base64）
 async function fileToDataUrl(file: File): Promise<string> {
@@ -188,11 +188,11 @@ export async function POST(request: NextRequest) {
 
     const messageContent: any[] = [
       {
-        type: "input_text",
+        type: "text",
         text: `${userIntro}\n\n输出格式要求：\n${expectedSchema}`,
       },
       // 依次附上多张图片
-      ...dataUrls.map((url) => ({ type: "input_image", image_url: url })),
+      ...dataUrls.map((url) => ({ type: "image_url", image_url: url })),
     ];
 
     // 环境校验与 OpenAI 客户端
