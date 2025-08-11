@@ -5,6 +5,13 @@ import OpenAI from "openai";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// function getOpenAIClient() {
+//   const baseURL = process.env.OPENAI_BASE_URL || "https://openrouter.ai/api/v1";
+//   const apiKey = process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || "";
+//   if (!apiKey) return null;
+//   return new OpenAI({ baseURL, apiKey });
+// }
+
 // 初始化 OpenAI/OpenRouter 客户端
 const openai = new OpenAI({
   baseURL: process.env.OPENAI_BASE_URL || "https://openrouter.ai/api/v1",
@@ -12,7 +19,7 @@ const openai = new OpenAI({
 });
 
 // 期望模型（需支持视觉理解）。如需替换，请统一在此处更改。
-const VISION_MODEL = "gpt-5";
+const VISION_MODEL = "openai/gpt-5-chat";
 
 // 将 File 转为 data URL（base64）
 async function fileToDataUrl(file: File): Promise<string> {
@@ -36,6 +43,50 @@ function extractJsonObject(text: string): any {
   if (match) return JSON.parse(match[0]);
   throw new Error("No valid JSON object found in AI response");
 }
+
+// function buildMockAnalysis(imageCount: number) {
+//   return {
+//     summary: {
+//       overallStyle: "极简中性色卡片化",
+//       designPrinciples: ["对比与留白", "统一网格", "层级清晰"],
+//     },
+//     visualSystem: {
+//       layout: { grid: "12列 24px 间距", composition: "主副双栏，卡片分组" },
+//       typography: {
+//         families: ["Inter", "SF Pro"],
+//         scale: "32/24/18/16/14",
+//         lineHeight: "1.4-1.6",
+//         letterSpacing: "-0.2~0",
+//       },
+//       colors: { palette: ["#111827", "#374151", "#F3F4F6", "#3B82F6"], usage: "深色文字、浅色卡片、主色点缀" },
+//       shadowsAndDepth: "卡片柔和阴影 + 悬浮加深",
+//       imagesAndIcons: { illustrationStyle: "扁平矢量", iconStyle: "线性 + 轻填充" },
+//       spacingAndRhythm: "8px 基数节奏，分割线弱化",
+//       interactionHints: "悬浮提升/点击按压反馈",
+//     },
+//     componentPatterns: [
+//       {
+//         name: "Card",
+//         anatomy: "容器/标题/内容/操作",
+//         variants: ["默认", "强调"],
+//         states: ["默认", "悬浮", "激活", "禁用"],
+//         usageNotes: "对比度与层级清楚，保持统一内边距",
+//       },
+//     ],
+//     constraints: {
+//       mustHave: ["统一网格", "足够留白"],
+//       avoid: ["过度阴影", "色彩过多"],
+//       adaptableParams: ["主题色", "品牌名", "标题文案"],
+//     },
+//     promptTemplates: {
+//       genericTemplate: "以【主题色】为主色，采用【整体风格】，生成包含【组件清单】的界面...",
+//       detailedExample: "生成一个面向【受众】的仪表盘...",
+//       negativePrompts: ["过度饱和", "杂乱布局"],
+//     },
+//     _mock: true,
+//     _images: imageCount,
+//   };
+// }
 
 export async function POST(request: NextRequest) {
   try {
@@ -144,18 +195,28 @@ export async function POST(request: NextRequest) {
       ...dataUrls.map((url) => ({ type: "input_image", image_url: url })),
     ];
 
-    const completion = await openai.responses.create({
+    // 环境校验与 OpenAI 客户端
+    // const openai = getOpenAIClient();
+    // if (!openai) {
+    //   if (process.env.NODE_ENV !== "production") {
+    //     return NextResponse.json({ success: true, images: files.length, model: VISION_MODEL, analysis: buildMockAnalysis(files.length), message: "开发模式：使用本地 mock 分析结果" });
+    //   }
+    //   return NextResponse.json({ error: "后端未配置 OPENROUTER_API_KEY/OPENAI_API_KEY" }, { status: 500 });
+    // }
+
+    // 请求大模型
+    const completion = await openai.chat.completions.create({
       model: VISION_MODEL,
-      input: [
+      messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: messageContent as any },
       ],
       temperature: 0.6,
-      max_output_tokens: 1800, // 改为新版参数名
+      // max_output_tokens: 1800, // 改为新版参数名
       top_p: 0.9,
     });
 
-    const content = completion.output_text || "";
+    const content = completion.choices[0].message.content || "";
     if (!content) {
       return NextResponse.json(
         { error: "模型无响应，请稍后重试" },
@@ -210,3 +271,8 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// export async function GET() {
+//   // 轻量心跳/预热接口：用于首次调用时预编译与唤醒
+//   return NextResponse.json({ ok: true });
+// }
