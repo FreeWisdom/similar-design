@@ -52,12 +52,12 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="relative min-h-screen">
-            <Header user={user} />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <Toaster />
+            <div className="relative min-h-screen">
+              <Header user={user} />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <Toaster />
         </ThemeProvider>
       </body>
     </html>
