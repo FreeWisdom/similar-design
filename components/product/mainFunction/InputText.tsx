@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useReverseDesignStore } from "@/stores/useReverseDesignStore";
+import { useAnalysisStore } from "@/stores/useAnalysisStore";
 
 const EXAMPLE_TEXT = `在信息过载的时代，只有结构化、可视化的内容才能快速抓住注意力。
 -自媒体创作者 用卡片图解让知识在社交平台裂变传播；
@@ -14,10 +14,10 @@ const EXAMPLE_TEXT = `在信息过载的时代，只有结构化、可视化的�
 -营销策划人 拆解爆款案例，用结构输出提升落地效率。
 -视觉化，是让你的观点被更多人理解、记住、分享的加速器。`;
 
-const MAX_LENGTH = 2000;
+const MAX_LENGTH = 5000;
 
 const InputText: React.FC = () => {
-  const { contentText, setContentText } = useReverseDesignStore();
+  const { contentText, setContentText } = useAnalysisStore();
 
   const handleUseExample = () => setContentText(EXAMPLE_TEXT);
   const handleClear = () => setContentText("");

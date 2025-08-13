@@ -19,7 +19,8 @@ import {
     CheckCircle2,
 } from "lucide-react";
 import InputText from "./InputText";
-import { useReverseDesignStore } from "@/stores/useReverseDesignStore";
+import { useAnalysisStore } from "@/stores/useAnalysisStore";
+import GenerateImages from "./GenerateImages";
 
 const MAX_FILES = 6;
 const MAX_SIZE_MB = 8; // 与服务端保持一致
@@ -138,7 +139,7 @@ const MainFunction: React.FC = () => {
         setLoading,
         result,
         setResult,
-    } = useReverseDesignStore();
+    } = useAnalysisStore();
     const [isDragging, setIsDragging] = useState(false);
     const inputRef = useRef<HTMLInputElement | null>(null);
     const prewarmedRef = useRef(false);
@@ -450,6 +451,8 @@ const MainFunction: React.FC = () => {
                     </CardContent>
                 </Card>
             </div>
+
+            <GenerateImages />
         </div>
     );
 };

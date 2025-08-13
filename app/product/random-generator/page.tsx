@@ -3,16 +3,17 @@
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Loader2 } from "lucide-react";
-// import RandomNameGenerator from "@/components/product/random/random-name-generator";
 import MainFunction from "@/components/product/mainFunction";
 import { useCallback, useEffect } from "react";
-import { useReverseDesignStore } from "@/stores/useReverseDesignStore";
+import { useAnalysisStore } from "@/stores/useAnalysisStore";
 import { useToast } from "@/hooks/use-toast";
+import { useCreateStore } from "@/stores/useCreateStore";
 
 export default function RandomNameGeneratorPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { files, loading, setLoading, setResult, result, contentText } = useReverseDesignStore();
+  const { files, loading, setLoading, setResult, result, contentText } = useAnalysisStore();
+	const { setGenImgRes, setGenImgResloading } = useCreateStore();
 
   const onSubmit = useCallback(async () => {
     if (files.length === 0) {
@@ -67,40 +68,44 @@ export default function RandomNameGeneratorPage() {
     }
   }, [files, toast, setLoading, setResult]);
 
-  // const joinJson = `
-  // "contentSource": {
-  //   "type": "article",
-  //   "format": "plaintext",
-  //   "rawText": ${JSON.stringify(contentText ?? "")}
-  // },
-  // "contentProcessing": {
-  //   "summarization": true,
-  //   "visualization": true,
-  //   "outputFormat": "ppt" 
-  // }`;
+  const startGen = async () => {
+    if (!result || !result.prompt) {
+      toast({ title: "请先完成分析", description: "需要先生成提示词模板", variant: "destructive" });
+      return;
+    }
 
+    // todo
+    const textPrompt = `\n\n**文本内容处理方式**：\n
+      - 分析需要处理的文本内容，根据内容提炼出N关键主题，并且生成N张相应的知识图片（如果提炼出5个关键主题，则生成5张图片）；
+      - 每个主题都要总结该主题的要点归纳，尽量用可视化方式，将要点在知识图片上用可视化图表直观的呈现出来；`
 
-  // try {
-  //   const addition = JSON.parse(`{${joinJson}}`);
-  //   const base = (result && typeof result === "object" && !Array.isArray(result)) ? result : {};
-  //   setResult({ ...base, ...addition });
-  //   toast({ title: "已追加生成配置字段" });
-  // } catch (e: any) {
-  //   toast({ title: "追加失败", description: e.message || String(e), variant: "destructive" });
-  // }
+    const newRes = result.prompt + `\n\n**需要处理的文本内容如下**：\n【${contentText}】`;
 
-  const startGen = () => {
-    console.log("result", result)
-
-    // const content = "Raw text content：/n" + "【" + JSON.stringify(contentText ?? "") + "】";
-    // const base = (result && typeof result === "object" && !Array.isArray(result)) ? result : {};
-    // setResult({ ...base, content });
-    // toast({ title: "已将 content 追加到 result" });
+    try {
+      // setLoading(true);
+      const res = await fetch("/api/reverse-design/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: newRes,
+          // size: "1024x1024"
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `生成失败 (${res.status})`);
+      }
+      const data = await res.json();
+      console.log("data", data)
+      setGenImgRes(data.image)
+      // setResult({ ...result, image: data.image, model: data.model, prompt: newRes });
+      // toast({ title: "生成完成", description: "已生成图片" });
+    } catch (e: any) {
+      toast({ title: "生成失败", description: e.message || String(e), variant: "destructive" });
+    } finally {
+      setGenImgResloading(false);
+    }
   };
-
-  useEffect(() => {
-    console.log("result", result)
-  }, [result])
 
   return (
     <div>
