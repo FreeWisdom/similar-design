@@ -304,7 +304,7 @@ const InputImgs = () => {
     async function tryOnce(): Promise<Response> {
       const fd = new FormData();
       files.forEach((f) => fd.append("images", f));
-      return fetch("/api/reverse-design/analyze", {
+      return fetch("/api/reverse-design/image", {
         method: "POST",
         body: fd,
         cache: "no-store",

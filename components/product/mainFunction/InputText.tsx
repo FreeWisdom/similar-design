@@ -4,9 +4,10 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useAnalysisStore } from "@/stores/useAnalysisStore";
+import { useAnalysisTextStore } from "@/stores/useAnalysisTextStore";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { Loader2 } from "lucide-react";
 
 const EXAMPLE_TEXT = `在信息过载的时代，只有结构化、可视化的内容才能快速抓住注意力。
 -自媒体创作者 用卡片图解让知识在社交平台裂变传播；
@@ -19,8 +20,11 @@ const EXAMPLE_TEXT = `在信息过载的时代，只有结构化、可视化的�
 const MAX_LENGTH = 5000;
 
 const InputText: React.FC = () => {
-  const { contentText, setContentText, result } = useAnalysisStore();
-  const { setGenImgRes, setGenImgResloading } = useCreateStore();
+  // const { contentText, setContentText
+  //   // , result
+  // } = useAnalysisStore();
+  const { contentText, setContentText, setAnaTextRes, setAnaTextLoading, anaTextLoading } = useAnalysisTextStore();
+  // const { setGenImgRes, setGenImgResloading } = useCreateStore();
 
   const handleUseExample = () => setContentText(EXAMPLE_TEXT);
   const handleClear = () => setContentText("");
@@ -28,52 +32,73 @@ const InputText: React.FC = () => {
   const { toast } = useToast();
 
   const startGen = async () => {
-    if (!result || !result.prompt) {
-      toast({
-        title: "请先完成分析",
-        description: "需要先生成提示词模板",
-        variant: "destructive",
-      });
-      return;
-    }
+    // if (!result || !result.prompt) {
+    //   toast({
+    //     title: "请先完成分析",
+    //     description: "需要先生成提示词模板",
+    //     variant: "destructive",
+    //   });
+    //   return;
+    // }
 
-    // todo
-    const textPrompt = `\n\n**文本内容处理方式**：\n
-      - 分析需要处理的文本内容，根据内容提炼出N个关键主题，并且生成N张相应的知识图片（如：提炼出5个关键主题，则生成5张知识图片）；
-      - 每个主题都要总结其中的要点归纳，尽量用可视化方式，将要点在知识图片上用可视化图表直观的呈现出来；`;
+    const textPrompt = `
+      You are an expert text analyst.
+      Task:
+      1. Read the following full article content.
+      2. Identify and list several key themes/topics from the article. Each theme should be concise and reflect the main ideas of the text.
+      3. Split the original article into multiple segments based on these themes. Each segment should only contain the text related to that theme, keeping the original wording unchanged.
 
-    const newRes =
-      result.prompt +
-      `\n\n**需要处理的文本内容如下**：\n【${contentText}】` +
-      textPrompt;
+      Requirements:
+      - Do not add extra commentary.
+      - Keep all original article text exactly as it is inside the "content" fields.
+      - Ensure the array is ordered in the same sequence the themes appear in the article.
+
+      Strict rules for output:
+      - Escape all double quotes in 'content' with a backslash (\").
+      - Preserve all line breaks using '\n'.
+      - Do not add any text outside of the JSON.
+      - Ensure the JSON is syntactically valid and can be parsed by standard JSON parsers.
+
+      Here is the article content:
+    `;
+
+    const expectedSchema = `严格只输出以下 JSON 结构：
+      {
+        texts: [
+          {
+            "theme": "<Theme name>",
+            "content": "<Original text content related to this theme>"
+          }
+        ] 
+      }
+    `;
+
+    const prompt = textPrompt + `\n\n"""{{${contentText}}}"""` + `\n\n输出格式要求：\n${expectedSchema}`;
 
     try {
-      // setLoading(true);
-      const res = await fetch("/api/reverse-design/generate", {
+      setAnaTextLoading(true);
+      const res = await fetch("/api/reverse-design/text", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: newRes,
-          // size: "1024x1024"
-        }),
+        body: JSON.stringify({ prompt }),
       });
+
       if (!res.ok) {
         const data = await res.json().catch(() => null);
         throw new Error(data?.error || `生成失败 (${res.status})`);
       }
+
       const data = await res.json();
-      console.log("data", data);
-      setGenImgRes(data.image);
-      // setResult({ ...result, image: data.image, model: data.model, prompt: newRes });
-      // toast({ title: "生成完成", description: "已生成图片" });
+      setAnaTextRes({ segments: data.segments, model: data.model });
+      toast({ title: "分析完成", description: "已生成主题分段结果" });
     } catch (e: any) {
       toast({
         title: "生成失败",
-        description: e.message || String(e),
+        description: e?.message || String(e),
         variant: "destructive",
       });
     } finally {
-      setGenImgResloading(false);
+      setAnaTextLoading(false);
     }
   };
 
@@ -94,8 +119,14 @@ const InputText: React.FC = () => {
             >
               清空
             </Button>
-            <Button onClick={startGen} disabled={!contentText}>
-              文字分析
+            <Button onClick={startGen} disabled={!contentText || anaTextLoading}>
+              {anaTextLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 分析中…
+                </>
+              ) : (
+                "文字分析"
+              )}
             </Button>
           </div>
         </div>

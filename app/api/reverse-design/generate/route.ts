@@ -8,7 +8,7 @@ export async function POST(req: NextRequest) {
     try {
         const body = await req.json().catch(() => ({}));
         const prompt = (body?.prompt ?? "").toString().trim();
-        const size = (body?.size ?? "1024x1024").toString();
+        // const size = (body?.size ?? "1024x1024").toString();
 
         if (!prompt) {
             return NextResponse.json({ error: "缺少提示词 prompt" }, { status: 400 });
@@ -28,25 +28,26 @@ export async function POST(req: NextRequest) {
 
         const MODEL = "anthropic/claude-sonnet-4";
 
-        // 将 size 形如 1024x1024 转为 width/height，用于提示
-        let width = "1024";
-        let height = "1024";
-        if (typeof size === "string" && size.includes("x")) {
-            const [w, h] = size.split("x");
-            if (w) width = String(parseInt(w, 10) || 1024);
-            if (h) height = String(parseInt(h, 10) || 1024);
-        }
+        // // 将 size 形如 1024x1024 转为 width/height，用于提示
+        // let width = "1024";
+        // let height = "1024";
+        // if (typeof size === "string" && size.includes("x")) {
+        //     const [w, h] = size.split("x");
+        //     if (w) width = String(parseInt(w, 10) || 1024);
+        //     if (h) height = String(parseInt(h, 10) || 1024);
+        // }
 
         const systemPrompt = "你是专业的矢量图与前端图形工程师。严格只输出合法的 SVG 文本，不要解释，不要使用 Markdown 代码块。";
         const userPrompt = [
             "根据以下需求生成一个精简、语义清晰、可直接渲染的 SVG：",
             "- 使用 <svg xmlns=\"http://www.w3.org/2000/svg\"> 根节点",
-            `- 设置 width=\"${width}\"、height=\"${height}\"、viewBox=\"0 0 ${width} ${height}\"`,
             "- 尽量内联样式，避免外链",
             "- 只输出完整 SVG，不要任何解释或包裹符号",
             "",
             `需求：\n${prompt}`,
         ].join("\n");
+                    // `- 设置 width=\"${width}\"、height=\"${height}\"、viewBox=\"0 0 ${width} ${height}\"`,
+
 
         const completion = await openai.chat.completions.create({
             model: MODEL,

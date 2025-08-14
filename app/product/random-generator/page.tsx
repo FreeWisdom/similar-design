@@ -2,14 +2,49 @@
 
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import MainFunction from "@/components/product/mainFunction";
-import { useAnalysisStore } from "@/stores/useAnalysisStore";
 import { useToast } from "@/hooks/use-toast";
 import { useCreateStore } from "@/stores/useCreateStore";
+import { useAnalysisTextStore } from "@/stores/useAnalysisTextStore";
+import { useAnalysisStore } from "@/stores/useAnalysisStore";
 
 export default function RandomNameGeneratorPage() {
+  const { anaTextRes } = useAnalysisTextStore();
+  const { result: anaImgRes } = useAnalysisStore();
+  const { genImgRes, setGenImgRes, genImgResloading, addItem } = useCreateStore();
+
   const router = useRouter();
+
+  const handleCreate = async () => {
+    console.log("anaTextRes", anaTextRes)
+    console.log("genImgRes", anaImgRes)
+
+    for (const item of anaTextRes.segments) {
+      const { content } = item;
+      const prompt = anaImgRes.prompt + '\n\nHere is the article content:' + `\n\n"""{{${content}}}"""`
+      const res = await fetch("/api/reverse-design/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        throw new Error(data?.error || `生成失败 (${res.status})`);
+      }
+      const data = await res.json();
+      console.log("data", data);
+      // const newImgRes: any[] = [];
+      // genImgRes.push(data.image)
+      // setGenImgRes(newImgRes);
+      addItem(data.image)
+    }
+  }
+
+  console.log("genImgRes && anaTextRes", anaImgRes, anaTextRes)
 
   return (
     <div>
@@ -35,6 +70,16 @@ export default function RandomNameGeneratorPage() {
                 Generate beautiful Chinese names instantly
               </p>
             </div>
+
+            <Button disabled={!anaImgRes || !anaTextRes} onClick={handleCreate}>
+              {genImgResloading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 分析中…
+                </>
+              ) : (
+                "开始生成"
+              )}
+            </Button>
           </div>
         </div>
       </header>
