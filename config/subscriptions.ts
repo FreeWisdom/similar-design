@@ -4,7 +4,7 @@ export const SUBSCRIPTION_TIERS: ProductTier[] = [
   {
     name: "Starter",
     id: "tier-hobby",
-    productId: "prod_63JTQmsUcQrlZe94IL76fI", // $11 monthly subscription
+    productId: "prod_52XVoVfOZPKXdBYwyPzHHo", // $11 monthly subscription
     priceMonthly: "$11",
     description: "Perfect for individual developers and small projects.",
     features: [
@@ -66,7 +66,7 @@ export const CREDITS_TIERS: ProductTier[] = [
       "3 credits for use across all features",
       "No expiration date",
       "Access to standard features",
-      "Community support"
+      "Community support",
     ],
     featured: false,
     discountCode: "", // Optional discount code
@@ -82,7 +82,7 @@ export const CREDITS_TIERS: ProductTier[] = [
       "6 credits for use across all features",
       "No expiration date",
       "Priority processing",
-      "Basic email support"
+      "Basic email support",
     ],
     featured: true,
     discountCode: "", // Optional discount code
@@ -98,9 +98,33 @@ export const CREDITS_TIERS: ProductTier[] = [
       "9 credits for use across all features",
       "No expiration date",
       "Premium support",
-      "Advanced analytics access"
+      "Advanced analytics access",
     ],
     featured: false,
     discountCode: "", // Optional discount code
+  },
+];
+
+// 中文名字积分套餐
+export const CHINESE_NAME_CREDITS_TIERS: ProductTier[] = [
+  {
+    name: "Chinese Name Credits",
+    id: "tier-chinese-name-1000",
+    productId: "prod_ChineseNameCredits1000", // 需要在 Creem 后台创建
+    priceMonthly: "$5",
+    description: "1000 credits for Chinese name generation.",
+    creditAmount: 1000,
+    features: [
+      "1000 credits for Chinese name generation",
+      "Standard & Premium generation modes",
+      "Personality-based matching",
+      "Custom name preferences",
+      "Unlimited name variations",
+      "Save favorite names",
+      "Export to PDF",
+      "Never expires",
+    ],
+    featured: true,
+    discountCode: "",
   },
 ];

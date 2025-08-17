@@ -132,7 +132,7 @@ export function SubscriptionStatusCard({
           )}
           {!subscription && (
             <h3 className="text-2xl font-bold mt-1 text-muted-foreground">
-              No Active Plan
+              No Active Subscription
             </h3>
           )}
         </div>
